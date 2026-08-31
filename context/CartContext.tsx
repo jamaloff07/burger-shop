@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+} from "react";
 
 export type Product = {
   id: number;
@@ -18,6 +23,8 @@ export type CartItem = Product & {
 type CartContextType = {
   cart: CartItem[];
   addToCart: (product: Product) => void;
+  increaseQuantity: (id: number) => void;
+  decreaseQuantity: (id: number) => void;
   removeFromCart: (id: number) => void;
 };
 
@@ -30,6 +37,7 @@ export function CartProvider({
 }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
+  // Add product
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingProduct = prevCart.find(
@@ -57,6 +65,37 @@ export function CartProvider({
     });
   };
 
+  // Increase quantity
+  const increaseQuantity = (id: number) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: item.quantity + 1,
+            }
+          : item
+      )
+    );
+  };
+
+  // Decrease quantity
+  const decreaseQuantity = (id: number) => {
+    setCart((prevCart) =>
+      prevCart
+        .map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                quantity: item.quantity - 1,
+              }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  // Remove product
   const removeFromCart = (id: number) => {
     setCart((prevCart) =>
       prevCart.filter((item) => item.id !== id)
@@ -68,6 +107,8 @@ export function CartProvider({
       value={{
         cart,
         addToCart,
+        increaseQuantity,
+        decreaseQuantity,
         removeFromCart,
       }}
     >
