@@ -1,19 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapPin,
   ShoppingCart,
   LogIn,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
 
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const { cart } = useCart();
 
@@ -24,6 +33,51 @@ export default function Navbar() {
 
   const closeMenu = () => {
     setIsOpen(false);
+  };
+
+  // Get logged-in user
+  useEffect(() => {
+    async function getUser() {
+      try {
+        const response = await fetch("/api/auth/me");
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        setUser(data.user);
+      } catch (error) {
+        console.error("User fetch error:", error);
+      }
+    }
+
+    getUser();
+  }, []);
+
+  // Logout
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      setUser(null);
+      setIsOpen(false);
+
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -95,14 +149,47 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Sign In */}
-          <Link
-            href="/signin"
-            className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-red-600 transition hover:bg-red-50 xl:px-5 xl:py-3"
-          >
-            <LogIn size={18} />
-            Sign In
-          </Link>
+          {/* User / Sign In */}
+          {user ? (
+            <div className="flex items-center gap-3">
+
+              {/* My Orders */}
+              <Link
+                href="/my-orders"
+                className="text-sm font-medium text-gray-600 transition hover:text-red-600"
+              >
+                My Orders
+              </Link>
+
+              {/* User Name */}
+              <span className="max-w-[120px] truncate text-sm font-medium text-gray-700">
+                Hi, {user.name}
+              </span>
+
+              {/* Logout */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-red-600 transition hover:bg-red-50 disabled:opacity-60 xl:px-5 xl:py-3"
+              >
+                <LogOut size={18} />
+
+                {loggingOut
+                  ? "Logging out..."
+                  : "Logout"}
+              </button>
+
+            </div>
+          ) : (
+            <Link
+              href="/signin"
+              className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-red-600 transition hover:bg-red-50 xl:px-5 xl:py-3"
+            >
+              <LogIn size={18} />
+              Sign In
+            </Link>
+          )}
 
           {/* Order Now */}
           <Link
@@ -183,15 +270,46 @@ export default function Navbar() {
               About
             </Link>
 
-            <Link
-              href="/signin"
-              onClick={closeMenu}
-              className="mt-2 flex items-center gap-2 rounded-xl border border-red-200 px-4 py-3 text-red-600"
-            >
-              <LogIn size={18} />
-              Sign In
-            </Link>
+            {/* Mobile User */}
+            {user ? (
+              <>
+                <div className="mt-2 rounded-xl bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
+                  Hi, {user.name}
+                </div>
 
+                <Link
+                  href="/my-orders"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 text-gray-700 transition hover:bg-red-50 hover:text-red-600"
+                >
+                  My Orders
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-3 text-red-600 disabled:opacity-60"
+                >
+                  <LogOut size={18} />
+
+                  {loggingOut
+                    ? "Logging out..."
+                    : "Logout"}
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/signin"
+                onClick={closeMenu}
+                className="mt-2 flex items-center gap-2 rounded-xl border border-red-200 px-4 py-3 text-red-600"
+              >
+                <LogIn size={18} />
+                Sign In
+              </Link>
+            )}
+
+            {/* Order Now */}
             <Link
               href="/#menu"
               onClick={closeMenu}

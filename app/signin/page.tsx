@@ -8,8 +8,51 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const handleLogin = async () => {
-    console.log("Login:", email, password);
+    setError("");
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Login failed"
+        );
+      }
+
+      window.location.href = "/";
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,9 +74,17 @@ export default function SignInPage() {
           </p>
         </div>
 
+        {/* Error */}
+        {error && (
+          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
         {/* Form */}
         <div className="mt-8 space-y-4">
 
+          {/* Email */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Email
@@ -43,11 +94,14 @@ export default function SignInPage() {
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Password
@@ -57,20 +111,31 @@ export default function SignInPage() {
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
             />
           </div>
 
+          {/* Sign In */}
           <button
             type="button"
             onClick={handleLogin}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700"
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogIn size={18} />
-            Sign In
-          </button>
 
+            {loading
+              ? "Signing In..."
+              : "Sign In"}
+          </button>
         </div>
 
         {/* Register */}

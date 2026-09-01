@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
   User,
@@ -9,6 +10,77 @@ import {
 } from "lucide-react";
 
 export default function RegisterPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRegister = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        "/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Registration failed"
+        );
+      }
+
+      window.location.href = "/signin";
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gray-50">
 
@@ -45,8 +117,18 @@ export default function RegisterPage() {
             </p>
           </div>
 
+          {/* Error */}
+          {error && (
+            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
           {/* Form */}
-          <form className="mt-7 space-y-4 sm:mt-8 sm:space-y-5">
+          <form
+            onSubmit={handleRegister}
+            className="mt-7 space-y-4 sm:mt-8 sm:space-y-5"
+          >
 
             {/* Name */}
             <div>
@@ -63,6 +145,10 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) =>
+                    setName(e.target.value)
+                  }
                   className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-red-500"
                 />
               </div>
@@ -83,6 +169,10 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
                   className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-red-500"
                 />
               </div>
@@ -103,6 +193,10 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   placeholder="Create a password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
                   className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-red-500"
                 />
               </div>
@@ -123,6 +217,10 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    setConfirmPassword(e.target.value)
+                  }
                   className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-red-500"
                 />
               </div>
@@ -131,9 +229,12 @@ export default function RegisterPage() {
             {/* Register */}
             <button
               type="submit"
-              className="w-full rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700"
+              disabled={loading}
+              className="w-full rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Create Account
+              {loading
+                ? "Creating Account..."
+                : "Create Account"}
             </button>
 
           </form>
