@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 
-import { useCart } from "@/context/CartContext";
-import { products } from "@/data/products";
+import { useCart, Product } from "@/context/CartContext";
 
 const categories = [
   "All",
@@ -17,14 +16,40 @@ const categories = [
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const { addToCart } = useCart();
+
+  // Get products from API
+  useEffect(() => {
+    async function getProducts() {
+      try {
+        const response = await fetch("/api/products");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const data = await response.json();
+
+        setProducts(data);
+      } catch (error) {
+        console.error("Products error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getProducts();
+  }, []);
 
   const filteredProducts =
     activeCategory === "All"
       ? products
       : products.filter(
-          (product) => product.category === activeCategory
+          (product) =>
+            product.category?.name === activeCategory
         );
 
   return (
@@ -63,8 +88,14 @@ export default function Menu() {
           ))}
         </div>
 
-        {/* Products */}
-        {filteredProducts.length > 0 ? (
+        {/* Loading */}
+        {loading ? (
+          <div className="mt-16 text-center text-sm text-gray-500">
+            Loading products...
+          </div>
+        ) : filteredProducts.length > 0 ? (
+
+          /* Products */
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
 
             {filteredProducts.map((product) => (
@@ -115,7 +146,7 @@ export default function Menu() {
                     </Link>
 
                     <span className="shrink-0 text-sm font-medium text-red-600">
-                      {product.price}
+                      ${product.price.toFixed(2)}
                     </span>
 
                   </div>

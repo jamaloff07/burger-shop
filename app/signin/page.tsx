@@ -1,119 +1,99 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Mail, Lock } from "lucide-react";
+import { useState } from "react";
+import { LogIn } from "lucide-react";
 
 export default function SignInPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    console.log("Login:", email, password);
+  };
+
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-sm sm:p-8">
 
-      {/* Back */}
-      <div className="px-4 pt-6 sm:px-6 sm:pt-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-red-600"
-        >
-          <ArrowLeft size={18} />
-          Back to Home
-        </Link>
-      </div>
-
-      {/* Login */}
-      <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-        <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-sm sm:p-8">
-
-          {/* Logo */}
-          <div className="flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-2xl shadow-md sm:h-16 sm:w-16 sm:text-3xl">
-              🍔
-            </div>
+        {/* Logo */}
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-3xl shadow-sm">
+            🍔
           </div>
 
-          {/* Title */}
-          <div className="mt-5 text-center sm:mt-6">
-            <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">
-              Welcome Back
-            </h1>
+          <h1 className="mt-5 text-2xl font-bold text-gray-800">
+            Welcome Back
+          </h1>
 
-            <p className="mt-2 text-sm text-gray-500">
-              Sign in to your Burger House account
-            </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Sign in to your Burger House account
+          </p>
+        </div>
+
+        {/* Form */}
+        <div className="mt-8 space-y-4">
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Email
+            </label>
+
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
+            />
           </div>
 
-          {/* Form */}
-          <form className="mt-7 space-y-4 sm:mt-8 sm:space-y-5">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Password
+            </label>
 
-            {/* Email */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Email
-              </label>
-
-              <div className="relative">
-                <Mail
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-red-500"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Password
-                </label>
-
-                <a
-                  href="#"
-                  className="text-xs text-red-600 hover:underline"
-                >
-                  Forgot password?
-                </a>
-              </div>
-
-              <div className="relative">
-                <Lock
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-red-500"
-                />
-              </div>
-            </div>
-
-            {/* Sign In */}
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700"
-            >
-              Sign In
-            </button>
-
-          </form>
-
-          {/* Register */}
-          <div className="mt-5 text-center text-sm text-gray-500 sm:mt-6">
-            Don't have an account?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-red-600 hover:underline"
-            >
-              Create account
-            </Link>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
+            />
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogin}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700"
+          >
+            <LogIn size={18} />
+            Sign In
+          </button>
 
         </div>
+
+        {/* Register */}
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Don't have an account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-red-600 hover:text-red-700"
+          >
+            Register
+          </Link>
+        </p>
+
+        {/* Back */}
+        <div className="mt-4 text-center">
+          <Link
+            href="/"
+            className="text-sm text-gray-400 hover:text-red-600"
+          >
+            ← Back to Home
+          </Link>
+        </div>
+
       </div>
     </main>
   );

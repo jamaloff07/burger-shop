@@ -8,12 +8,16 @@ import {
 } from "react";
 
 export type Product = {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  price: string;
-  category: string;
+  price: number;
+  categoryId: string;
   image: string;
+  category?: {
+    id: string;
+    name: string;
+  };
 };
 
 export type CartItem = Product & {
@@ -23,9 +27,9 @@ export type CartItem = Product & {
 type CartContextType = {
   cart: CartItem[];
   addToCart: (product: Product) => void;
-  increaseQuantity: (id: number) => void;
-  decreaseQuantity: (id: number) => void;
-  removeFromCart: (id: number) => void;
+  increaseQuantity: (id: string) => void;
+  decreaseQuantity: (id: string) => void;
+  removeFromCart: (id: string) => void;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -66,7 +70,7 @@ export function CartProvider({
   };
 
   // Increase quantity
-  const increaseQuantity = (id: number) => {
+  const increaseQuantity = (id: string) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === id
@@ -80,7 +84,7 @@ export function CartProvider({
   };
 
   // Decrease quantity
-  const decreaseQuantity = (id: number) => {
+  const decreaseQuantity = (id: string) => {
     setCart((prevCart) =>
       prevCart
         .map((item) =>
@@ -96,7 +100,7 @@ export function CartProvider({
   };
 
   // Remove product
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     setCart((prevCart) =>
       prevCart.filter((item) => item.id !== id)
     );

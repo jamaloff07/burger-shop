@@ -1,21 +1,107 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 
 import Navbar from "@/components/Navbar";
 import { useCart } from "@/context/CartContext";
 
 export default function CheckoutPage() {
-  const { cart } = useCart();
+  const {
+    cart,
+  } = useCart();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const subtotal = cart.reduce((total, item) => {
-    const price = Number(item.price.replace("$", ""));
-    return total + price * item.quantity;
+    return total + item.price * item.quantity;
   }, 0);
 
   const delivery = cart.length > 0 ? 2.99 : 0;
   const total = subtotal + delivery;
+
+  const handlePlaceOrder = async () => {
+    setError("");
+
+    if (
+      !firstName ||
+      !lastName ||
+      !phone ||
+      !city ||
+      !address
+    ) {
+      setError("Please fill in all delivery information.");
+      return;
+    }
+
+    if (!cardNumber || !expiry || !cvv) {
+      setError("Please fill in your payment information.");
+      return;
+    }
+
+    if (cart.length === 0) {
+      setError("Your cart is empty.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phone,
+          city,
+          address,
+          notes,
+          paymentMethod: "card",
+
+          items: cart.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to create order"
+        );
+      }
+
+      window.location.href = `/order-success/${data.order.id}`;
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -24,7 +110,9 @@ export default function CheckoutPage() {
 
         <main className="flex min-h-screen items-center justify-center bg-gray-50 px-5">
           <div className="text-center">
-            <div className="text-5xl sm:text-6xl">🛒</div>
+            <div className="text-5xl sm:text-6xl">
+              🛒
+            </div>
 
             <h1 className="mt-5 text-xl font-bold text-gray-800 sm:text-2xl">
               Your cart is empty
@@ -67,7 +155,13 @@ export default function CheckoutPage() {
             Checkout
           </h1>
 
-          {/* Main */}
+          {/* Error */}
+          {error && (
+            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
           <div className="mt-6 grid gap-6 lg:mt-8 lg:grid-cols-3 lg:gap-8">
 
             {/* Forms */}
@@ -92,36 +186,60 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) =>
+                      setFirstName(e.target.value)
+                    }
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                   />
 
                   <input
                     type="text"
                     placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) =>
+                      setLastName(e.target.value)
+                    }
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                   />
 
                   <input
                     type="tel"
                     placeholder="Phone Number"
+                    value={phone}
+                    onChange={(e) =>
+                      setPhone(e.target.value)
+                    }
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                   />
 
                   <input
                     type="text"
                     placeholder="City"
+                    value={city}
+                    onChange={(e) =>
+                      setCity(e.target.value)
+                    }
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                   />
 
                   <input
                     type="text"
                     placeholder="Address"
+                    value={address}
+                    onChange={(e) =>
+                      setAddress(e.target.value)
+                    }
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500 sm:col-span-2"
                   />
 
                   <textarea
                     placeholder="Additional notes"
                     rows={4}
+                    value={notes}
+                    onChange={(e) =>
+                      setNotes(e.target.value)
+                    }
                     className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500 sm:col-span-2"
                   />
 
@@ -147,6 +265,10 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     placeholder="Card Number"
+                    value={cardNumber}
+                    onChange={(e) =>
+                      setCardNumber(e.target.value)
+                    }
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                   />
 
@@ -155,16 +277,29 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       placeholder="MM / YY"
+                      value={expiry}
+                      onChange={(e) =>
+                        setExpiry(e.target.value)
+                      }
                       className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                     />
 
                     <input
-                      type="text"
+                      type="password"
                       placeholder="CVV"
+                      value={cvv}
+                      onChange={(e) =>
+                        setCvv(e.target.value)
+                      }
                       className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500"
                     />
 
                   </div>
+
+                  <p className="text-xs text-gray-400">
+                    Your card details are not stored in our database.
+                  </p>
+
                 </div>
               </div>
 
@@ -179,32 +314,29 @@ export default function CheckoutPage() {
 
               <div className="mt-5 space-y-4 sm:mt-6">
 
-                {cart.map((item) => {
-                  const price = Number(
-                    item.price.replace("$", "")
-                  );
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-800">
+                        {item.name}
+                      </p>
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-800">
-                          {item.name}
-                        </p>
-
-                        <p className="mt-1 text-xs text-gray-500">
-                          Qty: {item.quantity}
-                        </p>
-                      </div>
-
-                      <span className="shrink-0 text-sm font-medium text-gray-800">
-                        ${(price * item.quantity).toFixed(2)}
-                      </span>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
-                  );
-                })}
+
+                    <span className="shrink-0 text-sm font-medium text-gray-800">
+                      $
+                      {(item.price * item.quantity).toFixed(
+                        2
+                      )}
+                    </span>
+                  </div>
+                ))}
 
               </div>
 
@@ -236,13 +368,14 @@ export default function CheckoutPage() {
               {/* Place Order */}
               <button
                 type="button"
-                className="mt-5 w-full rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700 sm:mt-6"
+                onClick={handlePlaceOrder}
+                disabled={loading}
+                className="mt-5 w-full rounded-xl bg-red-600 py-3.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-6"
               >
-                Place Order
+                {loading ? "Placing Order..." : "Place Order"}
               </button>
 
             </div>
-
           </div>
         </div>
       </main>

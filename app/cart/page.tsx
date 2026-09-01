@@ -15,9 +15,7 @@ export default function CartPage() {
   } = useCart();
 
   const subtotal = cart.reduce((total, item) => {
-    const price = Number(item.price.replace("$", ""));
-
-    return total + price * item.quantity;
+    return total + item.price * item.quantity;
   }, 0);
 
   const delivery = cart.length > 0 ? 2.99 : 0;
@@ -81,14 +79,8 @@ export default function CartPage() {
 
               {/* Cart Items */}
               <div className="space-y-4 lg:col-span-2">
-
                 {cart.map((item) => {
-                  const price = Number(
-                    item.price.replace("$", "")
-                  );
-
-                  const itemTotal =
-                    price * item.quantity;
+                  const itemTotal = item.price * item.quantity;
 
                   return (
                     <div
@@ -120,6 +112,7 @@ export default function CartPage() {
                               </p>
                             </div>
 
+                            {/* Delete */}
                             <button
                               type="button"
                               onClick={() =>
@@ -167,13 +160,15 @@ export default function CartPage() {
 
                           {/* Price */}
                           <div className="shrink-0 text-right">
+
                             <p className="text-[10px] text-gray-400 sm:text-xs">
-                              {item.price} each
+                              ${item.price.toFixed(2)} each
                             </p>
 
                             <p className="text-sm font-bold text-red-600 sm:text-base">
                               ${itemTotal.toFixed(2)}
                             </p>
+
                           </div>
 
                         </div>
@@ -182,7 +177,6 @@ export default function CartPage() {
                     </div>
                   );
                 })}
-
               </div>
 
               {/* Summary */}
